@@ -90,9 +90,11 @@ KEY load_privkey(PATH dir) {
 KEY_t gen_shared_key(){
     unsigned char *buffer = malloc(SHARED_KEYSIZE);
     if (!buffer) return NULL;
-    if (RAND_bytes(buffer, SHARED_KEYSIZE) != 1) return NULL;
+    if (RAND_bytes(buffer, SHARED_KEYSIZE) != 1) {
+        free(buffer); // Freeing memory in case of error
+        return NULL;
+    }
     return buffer;
-    //return NULL;
 }
 
 unsigned char *rsa_encrypt(KEY pub_key, size_t *encrypted_len, KEY_t *plain) {
@@ -113,6 +115,7 @@ unsigned char *rsa_encrypt(KEY pub_key, size_t *encrypted_len, KEY_t *plain) {
     if (!encrypted) {
         perror("Failed to allocate memory for encryption");
         EVP_PKEY_CTX_free(ctx);
+        free(plaintext); // Freeing memory in case of error
         return NULL;
     }
 
@@ -120,11 +123,13 @@ unsigned char *rsa_encrypt(KEY pub_key, size_t *encrypted_len, KEY_t *plain) {
     if (EVP_PKEY_encrypt(ctx, encrypted, encrypted_len, plaintext, SHARED_KEYSIZE) <= 0) {
         free(encrypted);
         EVP_PKEY_CTX_free(ctx);
+        free(plaintext); // Freeing memory in case of error
         handle_openssl_error();
     }
 
+    EVP_PKEY_CTX_free(ctx);
+    free(plaintext); // Freeing memory after encryption
     return encrypted;
-    //return NULL;
 }
 
 unsigned char *rsa_decrypt(KEY priv_key, unsigned char *ciphertext, size_t ciphertext_len) {
@@ -137,17 +142,24 @@ unsigned char *rsa_decrypt(KEY priv_key, unsigned char *ciphertext, size_t ciphe
 
     size_t outlen;
     if (EVP_PKEY_decrypt(ctx, NULL, &outlen, ciphertext, ciphertext_len) <= 0) {
+        EVP_PKEY_CTX_free(ctx); // Freeing memory in case of error
         handle_openssl_error();
     }
 
     unsigned char *decrypted = malloc(outlen);
-    if (!decrypted) handle_openssl_error();
+    if (!decrypted) {
+        EVP_PKEY_CTX_free(ctx); // Freeing memory in case of error
+        handle_openssl_error();
+    }
 
     // Perform decryption
     if (EVP_PKEY_decrypt(ctx, decrypted, &outlen, ciphertext, ciphertext_len) <= 0) {
         free(decrypted);
+        EVP_PKEY_CTX_free(ctx); // Freeing memory in case of error
         handle_openssl_error();
     }
+
+    EVP_PKEY_CTX_free(ctx);
     return decrypted;
 }
 
@@ -164,10 +176,15 @@ size_t fsize(FILE *file){
 int RSA_fencrypt(KEY pub_key, PATH filepath, KEY_t *shared){
     size_t enc_len;
     unsigned char *encrypted = rsa_encrypt(pub_key, &enc_len, shared);
+    if (!encrypted) return 1; // Check if encryption failed
     FILE *outfile = fopen(filepath, "wb");
-    if (!outfile) return 1;
+    if (!outfile) {
+        free(encrypted); // Release memory in case of error
+        return 1;
+    }
     fwrite(encrypted, 1, enc_len, outfile);
     fclose(outfile);
+    free(encrypted); // Freeing memory after writing to the file
     return 0;
 }
 
@@ -176,10 +193,14 @@ KEY_t RSA_fdecrypt(KEY priv_key, PATH filepath){
     if (!infile) return NULL;
     size_t size = fsize(infile);
     unsigned char *ciphertext = (unsigned char *)malloc(size);
-    if (!ciphertext) return NULL;
+    if (!ciphertext) {
+        fclose(infile); Release memory in case of error
+        return NULL;
+    }
     fread(ciphertext, 1, size, infile);
     fclose(infile);
     KEY_t decrypted = rsa_decrypt(priv_key, ciphertext, size);
+    free(ciphertext); // Freeing memory after decryption
     return decrypted;
 }
 
