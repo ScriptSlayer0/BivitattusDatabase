@@ -5,14 +5,16 @@
 PATH catpath(PATH path1, PATH path2) {
     if (!path1 || !path2) return NULL;
     
-    PATH full_path = (PATH)malloc(PATH_MAX);
-    if (!full_path) return NULL;
-    
     size_t len1 = OPENSSL_strnlen(path1, PATH_MAX);
-    if (len1 == 0 || len1 >= PATH_MAX) {
-        free(full_path);
+    size_t len2 = OPENSSL_strnlen(path2, PATH_MAX);
+    
+    // Validar todas las condiciones antes de asignar memoria
+    if (len1 == 0 || len1 >= PATH_MAX || len2 >= PATH_MAX || (len1 + len2 + 2) > PATH_MAX) {
         return NULL;
     }
+    
+    PATH full_path = (PATH)malloc(PATH_MAX);
+    if (!full_path) return NULL;
     
     if (path1[len1 - 1] == '/') {
         if (snprintf(full_path, PATH_MAX, "%s%s", path1, path2) >= PATH_MAX) {
