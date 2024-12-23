@@ -38,7 +38,7 @@ bool makedir(const PATH dir_name) {
     return true;
 }
 
-bool db_exists(PATH db_name){
+bool db_exists(const PATH db_name){
     #ifdef _WIN32
         DWORD attributes = GetFileAttributes(db_name);
 
@@ -60,9 +60,9 @@ bool db_exists(PATH db_name){
     return true;
 }
 
-bool sym_key_exists(PATH dir){
+bool sym_key_exists(const PATH dir){
     PATH filepath = catpath(dir, SYMKEY_FILE);
-    FILE *file =fopen(filepath, "r");
+    FILE *file = fopen(filepath, "r");
     if (!file) {
         return false;
     }
@@ -70,7 +70,7 @@ bool sym_key_exists(PATH dir){
     return true;
 }
 
-int gen_keys(PATH dir){
+int gen_keys(const PATH dir){
     if (sym_key_exists(dir)!=false){
         remove(catpath(dir, SYMKEY_FILE));
     }
@@ -80,7 +80,7 @@ int gen_keys(PATH dir){
     return 0;
 }
 
-int key_check(PATH dir){
+int key_check(const PATH dir){
     FILE *privkeyfile = fopen(catpath(dir, PRIV_KEYFILE), "r");
     FILE *pubkeyfile = fopen(catpath(dir, PUB_KEYFILE), "r");
     if ((privkeyfile==NULL) && (pubkeyfile==NULL)){
