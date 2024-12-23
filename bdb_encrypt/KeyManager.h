@@ -29,7 +29,7 @@
 
 typedef unsigned char key;
 
-bool makedir(PATH dir_name) {
+bool makedir(const PATH dir_name) {
     #ifdef _WIN32
         if (_mkdir(dir_name) != 0) return false;
     #else
@@ -89,6 +89,5 @@ int key_check(PATH dir){
     }
     return 0;
 }
-
 
 #endif // KEYMANAGER_H
