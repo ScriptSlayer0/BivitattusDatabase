@@ -38,7 +38,7 @@ bool makedir(const char *dir_name) {
     return true;
 }
 
-bool db_exists(const PATH db_name){
+bool db_exists(const char *db_name){
     #ifdef _WIN32
         DWORD attributes = GetFileAttributes(db_name);
 
