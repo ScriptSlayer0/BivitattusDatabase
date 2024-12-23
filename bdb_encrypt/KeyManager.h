@@ -29,7 +29,7 @@
 
 typedef unsigned char key;
 
-bool makedir(PATH const dir_name) {
+bool makedir(const PATH dir_name) {
     #ifdef _WIN32
         if (_mkdir(dir_name) != 0) return false;
     #else
@@ -38,7 +38,7 @@ bool makedir(PATH const dir_name) {
     return true;
 }
 
-bool db_exists(PATH const db_name){
+bool db_exists(const PATH db_name){
     #ifdef _WIN32
         DWORD attributes = GetFileAttributes(db_name);
 
@@ -60,8 +60,8 @@ bool db_exists(PATH const db_name){
     return true;
 }
 
-bool sym_key_exists(PATH const dir){
-    PATH const filepath = catpath(dir, SYMKEY_FILE);
+bool sym_key_exists(const PATH dir){
+    const PATH filepath = catpath(dir, SYMKEY_FILE);
     const FILE *file = fopen(filepath, "r");
     if (!file) {
         return false;
@@ -70,7 +70,7 @@ bool sym_key_exists(PATH const dir){
     return true;
 }
 
-int gen_keys(PATH const dir){
+int gen_keys(const PATH dir){
     if (sym_key_exists(dir)!=false){
         remove(catpath(dir, SYMKEY_FILE));
     }
@@ -80,7 +80,7 @@ int gen_keys(PATH const dir){
     return 0;
 }
 
-int key_check(PATH const dir){
+int key_check(const PATH dir){
     const FILE *privkeyfile = fopen(catpath(dir, PRIV_KEYFILE), "r");
     const FILE *pubkeyfile = fopen(catpath(dir, PUB_KEYFILE), "r");
     if ((privkeyfile==NULL) && (pubkeyfile==NULL)){
