@@ -29,7 +29,7 @@
 
 typedef unsigned char key;
 
-bool makedir(const PATH dir_name) {
+bool makedir(const char *dir_name) {
     #ifdef _WIN32
         if (_mkdir(dir_name) != 0) return false;
     #else
@@ -61,7 +61,7 @@ bool db_exists(const PATH db_name){
 }
 
 bool sym_key_exists(const PATH dir){
-    const PATH filepath = catpath(dir, SYMKEY_FILE);
+    const char *filepath = catpath(dir, SYMKEY_FILE);
     const FILE *file = fopen(filepath, "r");
     if (!file) {
         return false;
